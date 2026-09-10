@@ -95,7 +95,8 @@ fn test_has_claimed_reward_true_after_claim() {
     stop_cheat_caller_address(hunt_address);
 
     assert!(
-        hunt_dispatcher.has_claimed_reward(player, level), "should be claimed after claiming the NFT",
+        hunt_dispatcher.has_claimed_reward(player, level),
+        "should be claimed after claiming the NFT",
     );
 }
 
