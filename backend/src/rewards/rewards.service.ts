@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, BadRequestException, ConflictException } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException, BadRequestException, ConflictException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Reward, RewardType } from './entities/reward.entity';
@@ -8,6 +8,8 @@ import { ClaimRewardDto } from './dto/claim-reward.dto';
 
 @Injectable()
 export class RewardsService {
+  private readonly logger = new Logger(RewardsService.name);
+
   constructor(
     @InjectRepository(Reward)
     private readonly rewardRepository: Repository<Reward>,
@@ -86,37 +88,61 @@ export class RewardsService {
   async claimReward(claimRewardDto: ClaimRewardDto): Promise<RewardClaim> {
     const { userId, challengeId } = claimRewardDto;
 
-    // Check if user has already claimed this reward
-    const hasClaimed = await this.hasUserClaimedReward(userId, challengeId);
-    if (hasClaimed) {
-      throw new ConflictException('Reward already claimed');
+    try {
+      // Check if user has already claimed this reward
+      const hasClaimed = await this.hasUserClaimedReward(userId, challengeId);
+      if (hasClaimed) {
+        this.logger.warn(
+          `Reward mint rejected: user ${userId} already claimed the reward for challenge ${challengeId}`,
+        );
+        throw new ConflictException('Reward already claimed');
+      }
+
+      // Get the reward for this challenge
+      const reward = await this.getRewardByChallengeId(challengeId);
+
+      // Check if reward is still available (max claims limit)
+      if (reward.maxClaims !== null && reward.currentClaims >= reward.maxClaims) {
+        this.logger.warn(
+          `Reward mint rejected: claim limit reached for reward ${reward.id} (challenge ${challengeId}), requested by user ${userId}`,
+        );
+        throw new BadRequestException('Reward claim limit reached');
+      }
+
+      // Create the claim
+      const claim = this.rewardClaimRepository.create({
+        userId,
+        rewardId: reward.id,
+        challengeId,
+        status: 'claimed',
+      });
+
+      // Save the claim
+      const savedClaim = await this.rewardClaimRepository.save(claim);
+
+      // Update the reward's current claims count
+      await this.rewardRepository.update(reward.id, {
+        currentClaims: reward.currentClaims + 1,
+      });
+
+      return savedClaim;
+    } catch (error) {
+      if (
+        error instanceof ConflictException ||
+        error instanceof BadRequestException ||
+        error instanceof NotFoundException
+      ) {
+        // Already logged above (or self-descriptive, e.g. reward not found) - just rethrow.
+        throw error;
+      }
+
+      // Unexpected failure (e.g. a database error) - log with full detail before rethrowing.
+      this.logger.error(
+        `Reward mint failed unexpectedly for user ${userId}, challenge ${challengeId}: ${error.message}`,
+        error.stack,
+      );
+      throw error;
     }
-
-    // Get the reward for this challenge
-    const reward = await this.getRewardByChallengeId(challengeId);
-
-    // Check if reward is still available (max claims limit)
-    if (reward.maxClaims !== null && reward.currentClaims >= reward.maxClaims) {
-      throw new BadRequestException('Reward claim limit reached');
-    }
-
-    // Create the claim
-    const claim = this.rewardClaimRepository.create({
-      userId,
-      rewardId: reward.id,
-      challengeId,
-      status: 'claimed',
-    });
-
-    // Save the claim
-    const savedClaim = await this.rewardClaimRepository.save(claim);
-
-    // Update the reward's current claims count
-    await this.rewardRepository.update(reward.id, {
-      currentClaims: reward.currentClaims + 1,
-    });
-
-    return savedClaim;
   }
 
   /**
