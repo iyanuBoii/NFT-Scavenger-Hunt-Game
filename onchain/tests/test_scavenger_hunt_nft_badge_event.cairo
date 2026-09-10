@@ -90,17 +90,13 @@ fn test_minting_two_levels_emits_one_event_each() {
                 (
                     contract_address,
                     NFTEvent::BadgeMinted(
-                        BadgeMinted {
-                            recipient, level: Levels::Easy, token_id: easy_token_id,
-                        },
+                        BadgeMinted { recipient, level: Levels::Easy, token_id: easy_token_id },
                     ),
                 ),
                 (
                     contract_address,
                     NFTEvent::BadgeMinted(
-                        BadgeMinted {
-                            recipient, level: Levels::Medium, token_id: medium_token_id,
-                        },
+                        BadgeMinted { recipient, level: Levels::Medium, token_id: medium_token_id },
                     ),
                 ),
             ],
