@@ -25,6 +25,7 @@ pub mod ScavengerHuntNFT {
     use openzeppelin::access::accesscontrol::AccessControlComponent;
     use openzeppelin::introspection::src5::SRC5Component;
     use openzeppelin::token::erc1155::{ERC1155Component, ERC1155HooksEmptyImpl};
+    use starknet::event::EventEmitter;
     use starknet::ContractAddress;
     use super::Levels;
 
@@ -55,6 +56,15 @@ pub mod ScavengerHuntNFT {
         SRC5Event: SRC5Component::Event,
         #[flat]
         AccessControlEvent: AccessControlComponent::Event,
+        BadgeMinted: BadgeMinted,
+    }
+
+    /// Emitted whenever a level badge is minted to a recipient.
+    #[derive(Drop, starknet::Event)]
+    pub struct BadgeMinted {
+        pub recipient: ContractAddress,
+        pub level: Levels,
+        pub token_id: u256,
     }
 
     #[constructor]
@@ -107,6 +117,9 @@ pub mod ScavengerHuntNFT {
 
             // Mint exactly one token
             self.erc1155.mint_with_acceptance_check(recipient, token_id, 1_u256, array![].span());
+
+            // Emit a domain event recording the mint
+            self.emit(BadgeMinted { recipient, level, token_id });
         }
 
         // Check if a player has a specific level badge
