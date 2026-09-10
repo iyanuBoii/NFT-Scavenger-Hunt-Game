@@ -2,6 +2,7 @@ import { BadRequestException, Injectable, NotFoundException } from '@nestjs/comm
 import { TimeTrial } from '../time-trial.entity';
 import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
+import { PaginatedLeaderboardDto } from '../dto/leaderboard-query.dto';
 
 @Injectable()
 export class TimetrialService {
@@ -44,12 +45,25 @@ export class TimetrialService {
     });
   }
 
-  // Optional: basic leaderboard logic
-  async getLeaderboard(puzzleId: string): Promise<TimeTrial[]> {
-    return await this.trialRepo.find({
+  // Paginated leaderboard: fastest completions first
+  async getLeaderboard(
+    puzzleId: string,
+    page = 1,
+    limit = 10,
+  ): Promise<PaginatedLeaderboardDto<TimeTrial>> {
+    const [items, total] = await this.trialRepo.findAndCount({
       where: { puzzleId, completed: true },
       order: { endTime: 'ASC' },
-      take: 10,
+      skip: (page - 1) * limit,
+      take: limit,
     });
+
+    return {
+      items,
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit) || 0,
+    };
   }
 }
