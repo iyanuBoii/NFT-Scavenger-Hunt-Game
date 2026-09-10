@@ -9,6 +9,7 @@ import {
 } from "@/components/ui/card";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
+import PuzzleProgressBar from "./PuzzleProgressBar";
 // puzzle data to simulate data coming in
 const puzzleData = {
   title: "Simple Math",
@@ -18,6 +19,8 @@ const puzzleData = {
   puzzle:
     "How many  confirmations are typically recommended for StarkNet transactions?",
   hint: "StarkNet has faster finality than most L1s",
+  completedPuzzles: 2,
+  totalPuzzles: 8,
 };
 
 const PuzzleComponent = () => {
@@ -38,6 +41,10 @@ const PuzzleComponent = () => {
         </CardDescription>
       </CardHeader>
       <CardContent>
+        <PuzzleProgressBar
+          completed={puzzleData.completedPuzzles}
+          total={puzzleData.totalPuzzles}
+        />
         <form className="space-y-6">
           <label htmlFor="puzzle">{puzzleData.puzzle}</label>
           <div className="space-y-4">
