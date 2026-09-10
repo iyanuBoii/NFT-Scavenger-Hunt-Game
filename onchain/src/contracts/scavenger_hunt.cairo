@@ -381,6 +381,13 @@ pub mod ScavengerHunt {
         ) -> LevelProgress {
             self.player_level_progress.read((player, level.into()))
         }
+
+        // getter function to check if a player has already claimed the reward for a level
+        fn has_claimed_reward(
+            self: @ContractState, player: ContractAddress, level: Levels,
+        ) -> bool {
+            self.player_level_progress.read((player, level.into())).nft_minted
+        }
     }
 
     #[generate_trait]

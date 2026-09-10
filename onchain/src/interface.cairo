@@ -33,6 +33,8 @@ pub trait IScavengerHunt<TContractState> {
     fn get_player_level_progress(
         self: @TContractState, player: ContractAddress, level: Levels
     ) -> LevelProgress;
+    /// Returns whether `player` has already claimed (minted) the reward NFT for `level`.
+    fn has_claimed_reward(self: @TContractState, player: ContractAddress, level: Levels) -> bool;
 }
 
 #[derive(Drop, Debug, Serde, starknet::Store)]
