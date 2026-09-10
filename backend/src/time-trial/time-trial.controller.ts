@@ -1,9 +1,11 @@
-import { Body, Controller, Get, Param, Post } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Query } from '@nestjs/common';
 import { TimetrialService } from './providers/timetrial.service';
+import { LeaderboardQueryDto } from './dto/leaderboard-query.dto';
 import {
   ApiBody,
   ApiOperation,
   ApiParam,
+  ApiQuery,
   ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
@@ -72,17 +74,22 @@ export class TimeTrialController {
   }
 
   @Get('leaderboard/:puzzleId')
-  @ApiOperation({ summary: 'Get top 10 fastest completions for a puzzle' })
+  @ApiOperation({ summary: 'Get paginated fastest completions for a puzzle' })
   @ApiParam({
     name: 'puzzleId',
     description: 'Puzzle ID to get leaderboard for',
     example: 'puzzle-456',
   })
+  @ApiQuery({ name: 'page', required: false, example: 1 })
+  @ApiQuery({ name: 'limit', required: false, example: 10 })
   @ApiResponse({
     status: 200,
-    description: 'Top performers for the specified puzzle',
+    description: 'Paginated top performers for the specified puzzle',
   })
-  getLeaderboard(@Param('puzzleId') puzzleId: string) {
-    return this.timeTrialService.getLeaderboard(puzzleId);
+  getLeaderboard(
+    @Param('puzzleId') puzzleId: string,
+    @Query() query: LeaderboardQueryDto,
+  ) {
+    return this.timeTrialService.getLeaderboard(puzzleId, query.page, query.limit);
   }
 }
