@@ -34,14 +34,24 @@ const puzzleData = {
 const PuzzleComponent = () => {
   const [showHint, setShowHint] = useState(false);
   const [answer, setAnswer] = useState("");
+  const [error, setError] = useState("");
   const [confirmOpen, setConfirmOpen] = useState(false);
 
   const handleShowHint = () => {
     setShowHint((prev) => !prev);
   };
 
+  const handleAnswerChange = (e) => {
+    setAnswer(e.target.value);
+    if (error) setError("");
+  };
+
   const handleSubmitClick = (e) => {
     e.preventDefault();
+    if (!answer.trim()) {
+      setError("Please enter an answer before submitting.");
+      return;
+    }
     setConfirmOpen(true);
   };
 
@@ -73,8 +83,10 @@ const PuzzleComponent = () => {
               placeholder="Enter your answer"
               className="bg-white/5 border-white/20 text-white"
               value={answer}
-              onChange={(e) => setAnswer(e.target.value)}
+              onChange={handleAnswerChange}
+              aria-invalid={!!error}
             />
+            {error && <p className="text-red-400 text-sm">{error}</p>}
             <Button
               type="submit"
               className="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600"
