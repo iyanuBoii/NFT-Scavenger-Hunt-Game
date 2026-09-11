@@ -10,6 +10,14 @@ import {
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import PuzzleProgressBar from "./PuzzleProgressBar";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "./ui/dialog";
 // puzzle data to simulate data coming in
 const puzzleData = {
   title: "Simple Math",
@@ -25,9 +33,21 @@ const puzzleData = {
 
 const PuzzleComponent = () => {
   const [showHint, setShowHint] = useState(false);
+  const [answer, setAnswer] = useState("");
+  const [confirmOpen, setConfirmOpen] = useState(false);
 
   const handleShowHint = () => {
     setShowHint((prev) => !prev);
+  };
+
+  const handleSubmitClick = (e) => {
+    e.preventDefault();
+    setConfirmOpen(true);
+  };
+
+  const confirmSubmit = () => {
+    setConfirmOpen(false);
+    // proceed with real submission once wired to the backend
   };
   return (
     <Card className="backdrop-blur-lg bg-white/10 border-white/20 text-white">
@@ -45,18 +65,24 @@ const PuzzleComponent = () => {
           completed={puzzleData.completedPuzzles}
           total={puzzleData.totalPuzzles}
         />
-        <form className="space-y-6">
+        <form className="space-y-6" onSubmit={handleSubmitClick}>
           <label htmlFor="puzzle">{puzzleData.puzzle}</label>
           <div className="space-y-4">
             <Input
               type="text"
               placeholder="Enter your answer"
               className="bg-white/5 border-white/20 text-white"
+              value={answer}
+              onChange={(e) => setAnswer(e.target.value)}
             />
-            <Button className="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600">
+            <Button
+              type="submit"
+              className="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600"
+            >
               Submit Answer
             </Button>
             <Button
+              type="button"
               variant="outline"
               className="w-full border-white/20 text-white bg-transparent hover:text-white hover:bg-white/10"
               onClick={handleShowHint}
@@ -72,6 +98,24 @@ const PuzzleComponent = () => {
           )}
         </form>
       </CardContent>
+
+      <Dialog open={confirmOpen} onOpenChange={setConfirmOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Submit this answer?</DialogTitle>
+            <DialogDescription>
+              You&apos;re about to submit &quot;{answer}&quot;. This can&apos;t be
+              undone if it&apos;s correct.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setConfirmOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={confirmSubmit}>Confirm</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </Card>
   );
 };
