@@ -10,6 +10,14 @@ import {
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import PuzzleProgressBar from "./PuzzleProgressBar";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "./ui/dialog";
 // puzzle data to simulate data coming in
 const puzzleData = {
   title: "Simple Math",
@@ -27,6 +35,7 @@ const PuzzleComponent = () => {
   const [showHint, setShowHint] = useState(false);
   const [answer, setAnswer] = useState("");
   const [error, setError] = useState("");
+  const [confirmOpen, setConfirmOpen] = useState(false);
 
   const handleShowHint = () => {
     setShowHint((prev) => !prev);
@@ -37,12 +46,17 @@ const PuzzleComponent = () => {
     if (error) setError("");
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmitClick = (e) => {
     e.preventDefault();
     if (!answer.trim()) {
       setError("Please enter an answer before submitting.");
       return;
     }
+    setConfirmOpen(true);
+  };
+
+  const confirmSubmit = () => {
+    setConfirmOpen(false);
     // proceed with real submission once wired to the backend
   };
   return (
@@ -61,7 +75,7 @@ const PuzzleComponent = () => {
           completed={puzzleData.completedPuzzles}
           total={puzzleData.totalPuzzles}
         />
-        <form className="space-y-6" onSubmit={handleSubmit}>
+        <form className="space-y-6" onSubmit={handleSubmitClick}>
           <label htmlFor="puzzle">{puzzleData.puzzle}</label>
           <div className="space-y-4">
             <Input
@@ -96,6 +110,24 @@ const PuzzleComponent = () => {
           )}
         </form>
       </CardContent>
+
+      <Dialog open={confirmOpen} onOpenChange={setConfirmOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Submit this answer?</DialogTitle>
+            <DialogDescription>
+              You&apos;re about to submit &quot;{answer}&quot;. This can&apos;t be
+              undone if it&apos;s correct.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setConfirmOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={confirmSubmit}>Confirm</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </Card>
   );
 };
