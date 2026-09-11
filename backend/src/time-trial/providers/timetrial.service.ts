@@ -11,6 +11,12 @@ export class TimetrialService {
     private trialRepo: Repository<TimeTrial>,
   ) {}
 
+  private readonly leaderboardCache = new Map<
+    string,
+    { data: PaginatedLeaderboardDto<TimeTrial>; expiresAt: number }
+  >();
+  private readonly LEADERBOARD_CACHE_TTL_MS = 30_000;
+
   async startTrial(userId: string, puzzleId: string): Promise<TimeTrial> {
     const trial = this.trialRepo.create({
       userId,
@@ -34,7 +40,9 @@ export class TimetrialService {
 
     trial.endTime = endTime;
     trial.completed = true;
-    return await this.trialRepo.save(trial);
+    const saved = await this.trialRepo.save(trial);
+    this.leaderboardCache.clear(); // invalidate: this score may affect any leaderboard page
+    return saved;
   }
 
   async getResults(userId: string): Promise<TimeTrial[]> {
@@ -51,6 +59,12 @@ export class TimetrialService {
     page = 1,
     limit = 10,
   ): Promise<PaginatedLeaderboardDto<TimeTrial>> {
+    const cacheKey = `${puzzleId}:${page}:${limit}`;
+    const cached = this.leaderboardCache.get(cacheKey);
+    if (cached && cached.expiresAt > Date.now()) {
+      return cached.data;
+    }
+
     const [items, total] = await this.trialRepo.findAndCount({
       where: { puzzleId, completed: true },
       order: { endTime: 'ASC' },
@@ -58,12 +72,19 @@ export class TimetrialService {
       take: limit,
     });
 
-    return {
+    const result = {
       items,
       total,
       page,
       limit,
       totalPages: Math.ceil(total / limit) || 0,
     };
+
+    this.leaderboardCache.set(cacheKey, {
+      data: result,
+      expiresAt: Date.now() + this.LEADERBOARD_CACHE_TTL_MS,
+    });
+
+    return result;
   }
 }
