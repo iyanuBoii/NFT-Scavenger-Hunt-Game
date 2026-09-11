@@ -16,6 +16,7 @@ pub mod ScavengerHunt {
     use onchain::contracts::scavenger_hunt_nft::{
         IScavengerHuntNFTDispatcher, IScavengerHuntNFTDispatcherTrait
     };
+    use core::num::traits::Zero;
 
     const ADMIN_ROLE: felt252 = selector!("ADMIN_ROLE");
 
@@ -437,6 +438,10 @@ pub mod ScavengerHunt {
 
             // Get the NFT contract address
             let nft_contract = self.nft_contract_address.read();
+
+            // Prevent minting through an unconfigured (zero) NFT contract address,
+            // which would otherwise let the call silently no-op / target nothing.
+            assert!(!nft_contract.is_zero(), "NFT contract address not set");
 
             // Call the NFT contract to mint the badge
             IScavengerHuntNFTDispatcher { contract_address: nft_contract }
