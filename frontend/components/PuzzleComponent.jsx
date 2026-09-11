@@ -25,9 +25,25 @@ const puzzleData = {
 
 const PuzzleComponent = () => {
   const [showHint, setShowHint] = useState(false);
+  const [answer, setAnswer] = useState("");
+  const [error, setError] = useState("");
 
   const handleShowHint = () => {
     setShowHint((prev) => !prev);
+  };
+
+  const handleAnswerChange = (e) => {
+    setAnswer(e.target.value);
+    if (error) setError("");
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (!answer.trim()) {
+      setError("Please enter an answer before submitting.");
+      return;
+    }
+    // proceed with real submission once wired to the backend
   };
   return (
     <Card className="backdrop-blur-lg bg-white/10 border-white/20 text-white">
@@ -45,18 +61,26 @@ const PuzzleComponent = () => {
           completed={puzzleData.completedPuzzles}
           total={puzzleData.totalPuzzles}
         />
-        <form className="space-y-6">
+        <form className="space-y-6" onSubmit={handleSubmit}>
           <label htmlFor="puzzle">{puzzleData.puzzle}</label>
           <div className="space-y-4">
             <Input
               type="text"
               placeholder="Enter your answer"
               className="bg-white/5 border-white/20 text-white"
+              value={answer}
+              onChange={handleAnswerChange}
+              aria-invalid={!!error}
             />
-            <Button className="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600">
+            {error && <p className="text-red-400 text-sm">{error}</p>}
+            <Button
+              type="submit"
+              className="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600"
+            >
               Submit Answer
             </Button>
             <Button
+              type="button"
               variant="outline"
               className="w-full border-white/20 text-white bg-transparent hover:text-white hover:bg-white/10"
               onClick={handleShowHint}
