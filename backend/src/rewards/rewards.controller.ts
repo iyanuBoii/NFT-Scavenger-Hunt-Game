@@ -1,13 +1,15 @@
-import { 
-  Controller, 
-  Get, 
-  Post, 
-  Body, 
-  Param, 
-  Delete, 
-  HttpCode, 
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Param,
+  Delete,
+  HttpCode,
   HttpStatus,
-  UseGuards
+  UseGuards,
+  UsePipes,
+  ValidationPipe,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -88,7 +90,8 @@ export class RewardsController {
 
   @Post('claim')
   @HttpCode(HttpStatus.CREATED)
-  @ApiOperation({ 
+  @UsePipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true }))
+  @ApiOperation({
     summary: 'Claim a reward for a user',
     description: 'Allows a user to claim a reward for completing a specific challenge. Prevents duplicate claims.'
   })
