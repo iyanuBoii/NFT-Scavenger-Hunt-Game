@@ -137,9 +137,19 @@ const LeaderboardSection = () => {
 
       {/* Leaderboard */}
       <div className="space-y-4">
-        {topPlayers.map((player, index) => (
-          <PlayerCard key={index} player={player} rank={index + 1} />
-        ))}
+        {topPlayers.length > 0 ? (
+          topPlayers.map((player, index) => (
+            <PlayerCard key={index} player={player} rank={index + 1} />
+          ))
+        ) : (
+          <div className="text-center py-12 px-6 rounded-lg bg-white/5 border border-white/10">
+            <Trophy className="w-10 h-10 mx-auto mb-3 text-gray-500" />
+            <p className="text-white font-medium">No rankings yet</p>
+            <p className="text-gray-400 text-sm mt-1">
+              Complete a puzzle to claim the top spot on this leaderboard.
+            </p>
+          </div>
+        )}
       </div>
 
       {/* Mobile CTA */}
