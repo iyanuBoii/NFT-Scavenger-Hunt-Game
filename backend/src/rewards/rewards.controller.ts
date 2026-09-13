@@ -9,12 +9,13 @@ import {
   HttpStatus,
   UseGuards
 } from '@nestjs/common';
-import { 
-  ApiTags, 
-  ApiOperation, 
-  ApiResponse, 
-  ApiParam, 
-  ApiBearerAuth 
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiParam,
+  ApiBearerAuth,
+  getSchemaPath,
 } from '@nestjs/swagger';
 import { RewardsService } from './rewards.service';
 import { CreateRewardDto } from './dto/create-reward.dto';
@@ -143,13 +144,26 @@ export class RewardsController {
   @Get(':id/stats')
   @ApiOperation({ summary: 'Get reward statistics' })
   @ApiParam({ name: 'id', description: 'Reward ID' })
-  @ApiResponse({ 
-    status: 200, 
-    description: 'Reward statistics' 
+  @ApiResponse({
+    status: 200,
+    description: 'Reward statistics',
+    schema: {
+      properties: {
+        reward: { $ref: getSchemaPath(Reward) },
+        totalClaims: { type: 'number', example: 12 },
+        availableClaims: {
+          type: 'number',
+          nullable: true,
+          example: 988,
+          description: 'null when the reward has no maxClaims limit',
+        },
+        isAvailable: { type: 'boolean', example: true },
+      },
+    },
   })
-  @ApiResponse({ 
-    status: 404, 
-    description: 'Reward not found' 
+  @ApiResponse({
+    status: 404,
+    description: 'Reward not found'
   })
   async getRewardStats(@Param('id') id: string) {
     return await this.rewardsService.getRewardStats(id);
