@@ -7,9 +7,26 @@ import { Copy, Share2, Award } from "lucide-react";
 const ReferralLink = ({ referralLink }) => {
   const [copied, setCopied] = useState(false);
 
+  const legacyCopy = (text) => {
+    const textarea = document.createElement("textarea");
+    textarea.value = text;
+    textarea.style.position = "fixed";
+    textarea.style.opacity = "0";
+    document.body.appendChild(textarea);
+    textarea.focus();
+    textarea.select();
+    const succeeded = document.execCommand("copy");
+    document.body.removeChild(textarea);
+    return succeeded;
+  };
+
   const copyToClipboard = async () => {
     try {
-      await navigator.clipboard.writeText(referralLink);
+      if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(referralLink);
+      } else if (!legacyCopy(referralLink)) {
+        throw new Error("execCommand copy failed");
+      }
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch (err) {
