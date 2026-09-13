@@ -76,17 +76,23 @@ const PuzzleComponent = () => {
           total={puzzleData.totalPuzzles}
         />
         <form className="space-y-6" onSubmit={handleSubmitClick}>
-          <label htmlFor="puzzle">{puzzleData.puzzle}</label>
+          <label htmlFor="puzzle-answer">{puzzleData.puzzle}</label>
           <div className="space-y-4">
             <Input
+              id="puzzle-answer"
               type="text"
               placeholder="Enter your answer"
               className="bg-white/5 border-white/20 text-white"
               value={answer}
               onChange={handleAnswerChange}
               aria-invalid={!!error}
+              aria-describedby={error ? "puzzle-answer-error" : undefined}
             />
-            {error && <p className="text-red-400 text-sm">{error}</p>}
+            {error && (
+              <p id="puzzle-answer-error" role="alert" className="text-red-400 text-sm">
+                {error}
+              </p>
+            )}
             <Button
               type="submit"
               className="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600"
@@ -98,13 +104,20 @@ const PuzzleComponent = () => {
               variant="outline"
               className="w-full border-white/20 text-white bg-transparent hover:text-white hover:bg-white/10"
               onClick={handleShowHint}
+              aria-expanded={showHint}
+              aria-controls="puzzle-hint"
             >
-              Need a Hint?
+              {showHint ? "Hide Hint" : "Need a Hint?"}
             </Button>
           </div>
 
           {showHint && (
-            <p className="flex items-center mx-auto text-center">
+            <p
+              id="puzzle-hint"
+              role="status"
+              aria-live="polite"
+              className="flex items-center mx-auto text-center"
+            >
               {puzzleData.hint}
             </p>
           )}
